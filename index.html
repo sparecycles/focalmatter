@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+ <head>
+  <title>Focal Matter</title>
+  <style>
+    #canvas {
+      margin: 20px;
+      height: 800px;
+      left: 0;
+      right: 0;
+      display: block;
+      border: 4px solid #666;
+      position: relative;
+    }
+    #paper,#light {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      padding: 0;
+      display: block;
+    }
+    #data {
+      display: inline-block;
+      float: left;
+    }
+    .info .key {
+      float: left;
+      clear: both;
+      text-align: right;
+      background: #777;
+      border-radius: 4px;
+      padding: 0 5px;
+      margin: 2px 4px;
+    }
+    .info .value {
+      float: right;
+    }
+    .row {
+      margin-top: 30px;
+      display: inline;
+      width: 100%;
+    }
+    body {
+      background: #CCC;
+    }
+  </style>
+  <script src="raphael.js"></script>
+  <script src="focal.js"></script>
+  <script src="index.js"></script>
+ </head>
+ <body>
+  <div id="canvas">
+    <div id="paper"></div>
+    <div id="light"></div>
+  </div>
+  <script>onDocumentParsed();</script>
+ </body>
+</html>
