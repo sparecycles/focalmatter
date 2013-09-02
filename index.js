@@ -30,10 +30,10 @@
  * n_t 1014.0   far IR
  */
 
-var lens = require('lens.js');
-var math = require('math.js');
-var element = require('element.js');
-var material = require('material.js');
+var lens = require('lib/focal/lens.js');
+var math = require('lib/focal/math.js');
+var element = require('lib/focal/element.js');
+var material = require('lib/focal/material.js');
 
 var elements = [];
 
@@ -51,7 +51,7 @@ var topogon = {
   ball: { outer: 10, inner: 14, depth: 4.5, material: material.Material.Glass.Schott('P-BK7') },
   shell: { outer: 8, inner: 6.75, depth: .5, height: 6, material: material.Material.Glass.Schott('F2') },
   spacing: 11,
-  aperture: 3.5
+  aperture: 5
 };
 
 elements.push(new element.Element({
@@ -71,13 +71,10 @@ elements.push(new element.Element({
 
 x(topogon.spacing/2);
 
-elements.push(new element.Element({
-  radius: 1000,
-  index: 1,
-  front: x(),
-  depth: x(0.0001),
-  height: topogon.aperture
-}));
+elements.push(new element.Stop([
+  new lens.Vec2(x(), -topogon.aperture/2),
+  new lens.Vec2(x(), +topogon.aperture/2),
+]));
 
 x(topogon.spacing/2);
 
@@ -140,11 +137,9 @@ elements.push(new element.Element({
 
 }
 
-var optic = new lens.Optic(elements);
-
 function makePaper(id) {
   var paper = new Raphael(id);
-  paper.setViewBox(-10,-10,50,50);
+  paper.setViewBox(-10,-20,40,70,false);
   return paper;
 }
 
@@ -165,7 +160,7 @@ function render(paper, direction, wavelength, step, offset) {
   step = step || 1;
   offset = offset || 0;
   offset *= step;
-  for(var i = 5 + offset; i >= -5; i -= step) {
+  for(var i = 20 + offset; i >= -20; i -= step) {
     var ray = lens.Ray.fromDirectionAndPoint(direction.unit(), lens.Vec2(-10, -i));
     var result = optic.refract(ray, wavelength);
     if(result) {
@@ -211,7 +206,7 @@ function shape(rays) {
   }
 }
 
-function update(angle, dy) {
+function drawLight(angle, dy) {
   draw.light.clear();
   [angle].forEach(function(angle) {
     render(draw.light, lens.Vec2(1,angle), 400, 1, dy);
@@ -220,14 +215,49 @@ function update(angle, dy) {
   });
 }
 
+var drawTasks = null;
+
+function postRedraw() {
+  if(!drawTasks) {
+    drawTasks = {};
+
+    requestAnimationFrame(function() {
+      doRedraw(drawTasks);
+      drawTasks = null;
+    });
+  }
+
+  return drawTasks;
+}
+
+var scene = {};
+
+function redrawOptic(elements) {
+  postRedraw().optic = true;
+  scene.elements = elements;
+}
+
+function redrawLight(angle, dy) {
+  postRedraw().light = true;
+  scene.light = {angle: angle, dy: dy};
+}
+
+function doRedraw(tasks) {
+  if(tasks.optic) {
+    drawOptic(scene.elements);
+    tasks.light = true;
+  }
+  if(tasks.light) {
+    drawLight(scene.light.angle, scene.light.dy);
+  }
+}
+
 function drawOptic(elements) {
+  draw.paper.clear();
   elements.forEach(function(element) {
     var path = element.draw(draw.paper);
-    path.attr("fill", '#999');
-    path.attr("stroke", "blue");
-    path.attr("stroke-width", ".5");
-    path.attr("opacity", ".5");
   });
+  optic = new lens.Optic(elements);
 }
 
 function onDocumentParsed() {
@@ -246,12 +276,37 @@ function onDocumentParsed() {
   draw.paper = makePaper("paper");
   draw.light = makePaper("light");
 
-  drawOptic(elements);
+  redrawOptic(elements);
+
+  var KEY_LEFT  = 37;
+  var KEY_UP    = 38;
+  var KEY_RIGHT = 39;
+  var KEY_DOWN  = 40;
+
+  window.addEventListener("keydown", function(event) {
+    switch(event.keyCode) {
+    case KEY_LEFT:
+      elements[1] = new element.Element({
+        radius: [ topogon.ball.outer, -topogon.ball.inner ],
+        material: topogon.ball.material,
+        front: 5,
+        depth: topogon.ball.depth
+      });
+      redrawOptic(elements);
+      break;
+    case KEY_RIGHT:
+      break;
+    case KEY_DOWN:
+      break;
+    case KEY_UP:
+      break;
+    }
+  });
 
   window.addEventListener("mousemove", function(event) {
     var y = (event.clientY - window.innerHeight/2) / window.innerHeight;
-    update(y, 0);
+    redrawLight(y, 0);
   });
 
-  update(0,0);
+  redrawLight(0,0);
 }
