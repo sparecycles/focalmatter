@@ -40,12 +40,101 @@ var elements = [];
 var x = new function() {
   var pos = 0;
   return function(arg) {
-    if(arg) { pos += arg; return arg; }
+    if (arg) { pos += arg; return arg; }
     return pos;
   }
 }();
 
-if(1) {
+if (1) {
+
+
+x(1);
+
+elements.push(new element.Element({
+  radius: [ 15, 80 ],
+  material: material.Material.Glass.Schott('F2'),
+  front: x(),
+  depth: x(1),
+  height: 4
+}));
+
+x(1)
+
+elements.push(new element.Stop([
+  lens.Vec2(x(), -2),
+  lens.Vec2(x(), 2),
+]));
+
+x(1);
+
+elements.push(new element.Element({
+  radius: [ -30, 5 ],
+  material: material.Material.Glass.Schott('P-BK7'),
+  front: x(),
+  depth: x(1.5),
+  height: 3
+}));
+
+
+elements.push(new element.Element({
+  radius: [ -5, -10 ],
+  material: material.Material.Glass.Schott('F2'),
+  front: x(),
+  depth: x(.6),
+  height: 3
+}));
+
+x(2);
+
+elements.push(new element.Element({
+  radius: [ 20, 15 ],
+  material: material.Material.Glass.Schott('N-SF11'),
+  front: x(),
+  depth: x(1),
+  height: 3
+}));
+
+} else if (1) {
+
+elements.push(new element.Element({
+  radius: [ -25, 20 ],
+  material: material.Material.Glass.Schott('F2'),
+  front: x(),
+  depth: x(1),
+  height: 8
+}));
+
+x(7);
+
+elements.push(new element.Stop([
+  new lens.Vec2(x(), -3),
+  new lens.Vec2(x(), 3)
+]));
+
+x(4);
+
+elements.push(new element.Element({
+  radius: [ -20, 10 ],
+  material: material.Material.Glass.Schott('P-BK7'),
+  front: x(),
+  depth: x(1),
+  height: 4,
+}));
+
+
+x(4)
+
+  0 && 
+elements.push(new element.Element({
+  radius: [ 20, 1000 ],
+  material: material.Material.Glass.Schott('F2'),
+  front: x(),
+  depth: x(1),
+  height: 4
+}));
+
+
+} else if (1) {
 
 var topogon = {
   ball: { outer: 10, inner: 14, depth: 4.5, material: material.Material.Glass.Schott('P-BK7') },
@@ -145,16 +234,12 @@ function makePaper(id) {
 
 var draw = {};
 
-if(false) optic.lenses.forEach(function(lens) {
+if (false) optic.lenses.forEach(function(lens) {
   var circle = draw.paper.circle(lens.circle.c.x, lens.circle.c.y, lens.circle.r);
   circle.attr("stroke", "none");
   circle.attr("opacity", ".5");
 });
 
-
-function trace(ray, color, optic) {
-  return optic.refract()
-}
 
 function render(paper, direction, wavelength, step, offset) {
   step = step || 1;
@@ -209,9 +294,9 @@ function shape(rays) {
 function drawLight(angle, dy) {
   draw.light.clear();
   [angle].forEach(function(angle) {
-    render(draw.light, lens.Vec2(1,angle), 400, 1, dy);
+    //render(draw.light, lens.Vec2(1,angle), 400, 1, dy);
     render(draw.light, lens.Vec2(1,angle), 500, 1, dy);
-    render(draw.light, lens.Vec2(1,angle), 600, 1, dy);
+    //render(draw.light, lens.Vec2(1,angle), 600, 1, dy);
   });
 }
 
@@ -237,14 +322,21 @@ function redrawOptic(elements) {
   scene.elements = elements;
 }
 
+function computeFocalPlane(elements) {
+  
+}
+
 function redrawLight(angle, dy) {
   postRedraw().light = true;
-  scene.light = {angle: angle, dy: dy};
+  scene.light = { angle: angle, dy: dy };
 }
 
 function doRedraw(tasks) {
-  if(tasks.optic) {
+  if (tasks.optic) {
+    optic = new lens.Optic(elements);
     drawOptic(scene.elements);
+    var focalPlane = computeFocalPlane(elements);
+    //drawFocalPlane(focalPlane);
     tasks.light = true;
   }
   if(tasks.light) {
@@ -257,7 +349,6 @@ function drawOptic(elements) {
   elements.forEach(function(element) {
     var path = element.draw(draw.paper);
   });
-  optic = new lens.Optic(elements);
 }
 
 function onDocumentParsed() {
