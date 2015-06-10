@@ -4,10 +4,12 @@ function evil(fmt, params) {
   ).apply(this, Array.prototype.slice.call(arguments, 2));
 }
 
-evil.format = function(fmt, params) {
-  return fmt.replace(/{{([^}]*)}}/g, function(_, key) {
-    return params[key] || '';
-  });
+module evil {
+  export function format(fmt, params) {
+    return fmt.replace(/{{([^}]*)}}/g, function(_, key) {
+      return params[key] || '';
+    });
+  }
 }
 
-exports.evil = evil;
+export = evil;

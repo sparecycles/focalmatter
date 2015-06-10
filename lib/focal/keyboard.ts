@@ -9,11 +9,11 @@ var VK = {
   option: 18,
 };
 
-for(var letter = 'A'.charCodeAt(0); letter <= 'Z'.charCodeAt(0); letter++) {
+for (var letter = 'A'.charCodeAt(0); letter <= 'Z'.charCodeAt(0); letter++) {
   VK[String.fromCharCode(letter)] = letter;
 }
 
-if(Object.freeze) {
+if (Object.freeze) {
   VK = Object.freeze(VK);
 }
 
@@ -27,12 +27,13 @@ document.onkeyup = function(event) {
   delete keys[event.keyCode];
 }
 
-
 function keyboard(code) {
   return keyboard.keys[keyboard.vk[code]] || false;
 }
 
-keyboard.vk = VK;
-keyboard.keys = keys;
+module keyboard {
+  export var vk = VK;
+  export var keys = keys;
+}
 
-module.exports = keyboard;
+export = keyboard;

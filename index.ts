@@ -30,20 +30,23 @@
  * n_t 1014.0   far IR
  */
 
-var lens = require('lib/focal/lens.js');
-var math = require('lib/focal/math.js');
-var element = require('lib/focal/element.js');
-var material = require('lib/focal/material.js');
+import lens = require('lib/focal/lens');
+import math = require('lib/focal/math');
+import element = require('lib/focal/element');
+import material = require('lib/focal/material');
+
+declare var Raphael;
 
 var elements = [];
+var optic: any;
 
-var x = new function() {
+var x = (function() {
   var pos = 0;
-  return function(arg) {
+  return function(arg?) {
     if (arg) { pos += arg; return arg; }
     return pos;
   }
-}();
+})();
 
 if (1) {
 
@@ -61,8 +64,8 @@ elements.push(new element.Element({
 x(1)
 
 elements.push(new element.Stop([
-  lens.Vec2(x(), -2),
-  lens.Vec2(x(), 2),
+  new math.Vec2(x(), -2),
+  new math.Vec2(x(), 2),
 ]));
 
 x(1);
@@ -107,8 +110,8 @@ elements.push(new element.Element({
 x(7);
 
 elements.push(new element.Stop([
-  new lens.Vec2(x(), -3),
-  new lens.Vec2(x(), 3)
+  new math.Vec2(x(), -3),
+  new math.Vec2(x(), 3)
 ]));
 
 x(4);
@@ -161,8 +164,8 @@ elements.push(new element.Element({
 x(topogon.spacing/2);
 
 elements.push(new element.Stop([
-  new lens.Vec2(x(), -topogon.aperture/2),
-  new lens.Vec2(x(), +topogon.aperture/2),
+  new math.Vec2(x(), -topogon.aperture/2),
+  new math.Vec2(x(), +topogon.aperture / 2),
 ]));
 
 x(topogon.spacing/2);
@@ -232,7 +235,7 @@ function makePaper(id) {
   return paper;
 }
 
-var draw = {};
+var draw: any = {};
 
 if (false) optic.lenses.forEach(function(lens) {
   var circle = draw.paper.circle(lens.circle.c.x, lens.circle.c.y, lens.circle.r);
@@ -246,32 +249,7 @@ function render(paper, direction, wavelength, step, offset) {
   offset = offset || 0;
   offset *= step;
   for(var i = 20 + offset; i >= -20; i -= step) {
-    var ray = lens.Ray.fromDirectionAndPoint(direction.unit(), lens.Vec2(-10, -i));
-    var result = optic.refract(ray, wavelength);
-    if(result) {
-      var last = result[result.length-1];
-      var stroke = paper.path(Raphael.fullfill(
-        "M{ray.origin}" + 
-        result.map(function(ray) {
-          return Raphael.fullfill("L{origin}", ray);
-        }).join("") +
-        "L{next}",
-      {
-        ray: ray,
-        next: last.at(100)
-      }));
-      stroke.attr('stroke-width', '.4');
-      stroke.attr('stroke', material.rgbFromWavelength(wavelength));
-    }
-  }
-}
-
-function shape(rays) {
-  rays.map(function(ray) {
-
-  });
-  for(var i = 5 + offset; i >= -5; i -= step) {
-    var ray = lens.Ray.fromDirectionAndPoint(direction.unit(), lens.Vec2(-10, -i));
+      var ray = math.Ray.fromDirectionAndPoint(direction.unit(), new math.Vec2(-10, -i));
     var result = optic.refract(ray, wavelength);
     if(result) {
       var last = result[result.length-1];
@@ -294,16 +272,16 @@ function shape(rays) {
 function drawLight(angle, dy) {
   draw.light.clear();
   [angle].forEach(function(angle) {
-    //render(draw.light, lens.Vec2(1,angle), 400, 1, dy);
-    render(draw.light, lens.Vec2(1,angle), 500, 1, dy);
-    //render(draw.light, lens.Vec2(1,angle), 600, 1, dy);
+    //render(draw.light, new math.Vec2(1,angle), 400, 1, dy);
+    render(draw.light, new math.Vec2(1,angle), 500, 1, dy);
+    //render(draw.light, new math.Vec2(1,angle), 600, 1, dy);
   });
 }
 
-var drawTasks = null;
+var drawTasks: any = null;
 
 function postRedraw() {
-  if(!drawTasks) {
+  if (!drawTasks) {
     drawTasks = {};
 
     requestAnimationFrame(function() {
@@ -315,7 +293,7 @@ function postRedraw() {
   return drawTasks;
 }
 
-var scene = {};
+var scene: any = {};
 
 function redrawOptic(elements) {
   postRedraw().optic = true;
@@ -401,3 +379,7 @@ function onDocumentParsed() {
 
   redrawLight(0,0);
 }
+
+if (document.readyState === "complete") onDocumentParsed();
+else 
+window.addEventListener("DOMContentLoaded", onDocumentParsed);
