@@ -32,6 +32,7 @@
 
 import lens = require('lib/focal/lens');
 import math = require('lib/focal/math');
+import light = require('lib/focal/light');
 import element = require('lib/focal/element');
 import material = require('lib/focal/material');
 
@@ -64,8 +65,8 @@ elements.push(new element.Element({
 x(1)
 
 elements.push(new element.Stop([
-  new math.Vec2(x(), -2),
-  new math.Vec2(x(), 2),
+  new math.Point(x(), -2),
+  new math.Point(x(), 2),
 ]));
 
 x(1);
@@ -110,8 +111,8 @@ elements.push(new element.Element({
 x(7);
 
 elements.push(new element.Stop([
-  new math.Vec2(x(), -3),
-  new math.Vec2(x(), 3)
+  new math.Point(x(), -3),
+  new math.Point(x(), 3)
 ]));
 
 x(4);
@@ -164,8 +165,8 @@ elements.push(new element.Element({
 x(topogon.spacing/2);
 
 elements.push(new element.Stop([
-  new math.Vec2(x(), -topogon.aperture/2),
-  new math.Vec2(x(), +topogon.aperture / 2),
+  new math.Point(x(), -topogon.aperture/2),
+  new math.Point(x(), +topogon.aperture / 2),
 ]));
 
 x(topogon.spacing/2);
@@ -249,7 +250,7 @@ function render(paper, direction, wavelength, step, offset) {
   offset = offset || 0;
   offset *= step;
   for(var i = 20 + offset; i >= -20; i -= step) {
-      var ray = math.Ray.fromDirectionAndPoint(direction.unit(), new math.Vec2(-10, -i));
+      var ray = math.Ray.fromDirectionAndPoint(direction.unit(), new math.Point(-10, -i));
     var result = optic.refract(ray, wavelength);
     if(result) {
       var last = result[result.length-1];
@@ -264,7 +265,7 @@ function render(paper, direction, wavelength, step, offset) {
         next: last.at(100)
       }));
       stroke.attr('stroke-width', '.4');
-      stroke.attr('stroke', material.rgbFromWavelength(wavelength));
+      stroke.attr('stroke', light.rgbFromWavelength(wavelength));
     }
   }
 }
@@ -272,9 +273,9 @@ function render(paper, direction, wavelength, step, offset) {
 function drawLight(angle, dy) {
   draw.light.clear();
   [angle].forEach(function(angle) {
-    //render(draw.light, new math.Vec2(1,angle), 400, 1, dy);
-    render(draw.light, new math.Vec2(1,angle), 500, 1, dy);
-    //render(draw.light, new math.Vec2(1,angle), 600, 1, dy);
+    render(draw.light, new math.Point(1,angle), 400, 1, 0.00);
+    render(draw.light, new math.Point(1,angle), 500, 1, 0.33);
+    render(draw.light, new math.Point(1,angle), 600, 1, 0.66);
   });
 }
 
@@ -336,7 +337,7 @@ function onDocumentParsed() {
   for(var wv = 350; wv <= 800; wv += 10) {
     var div = document.createElement("div");
     div.style.display = "inline-block";
-    div.style.background = material.rgbFromWavelength(wv);
+    div.style.background = light.rgbFromWavelength(wv);
     div.style.width = "5px";
     div.style.height = "30px";
     colors.appendChild(div);

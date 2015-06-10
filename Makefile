@@ -32,7 +32,7 @@ clean:
 
 .PHONY: server
 server: FORCE
-	server --execute /build/index.js:make --debug 
+	server --execute /build/index.js:make --execute /focal.js:make
 
 .PHONY: FORCE
 FORCE : ;

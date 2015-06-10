@@ -8,39 +8,39 @@ module math {
     return x >= 0 ? x : -x;
   }
 
-  export class Vec2 {
+  export class Point {
     constructor(public x: number, public y: number) {
     }
 
-    static interpolate(p1: Vec2, p2: Vec2, t: number) {
-      return new Vec2(p2.x * t + p1.x * (1 - t), p2.y * t + p1.y * (1 - t));
+    static interpolate(p1: Point, p2: Point, t: number) {
+      return new Point(p2.x * t + p1.x * (1 - t), p2.y * t + p1.y * (1 - t));
     }
 
-    static zero = new Vec2(0, 0);
-    static up = new Vec2(0, -1);
-    static down = new Vec2(0, +1);
-    static left = new Vec2(-1, 0);
-    static right = new Vec2(+1, 0);
+    static zero = new Point(0, 0);
+    static up = new Point(0, -1);
+    static down = new Point(0, +1);
+    static left = new Point(-1, 0);
+    static right = new Point(+1, 0);
 
     unit() {
       var mag = this.mag();
       return mag == 0 ? this : this.mul(1 / mag);
     }
-    add(o: Vec2) {
+    add(o: Point) {
       var P = this;
-      return new Vec2(P.x + o.x, P.y + o.y);
+      return new Point(P.x + o.x, P.y + o.y);
     }
     neg() {
-      return new Vec2(-this.x, -this.y);
+      return new Point(-this.x, -this.y);
     }
-    sub(o: Vec2) {
-      return new Vec2(this.x - o.x, this.y - o.y);
+    sub(o: Point) {
+      return new Point(this.x - o.x, this.y - o.y);
     }
-    to(o: Vec2) {
+    to(o: Point) {
       return o.sub(this).unit();
     }
     mul(s: number) {
-      return new Vec2(this.x * s, this.y * s);
+      return new Point(this.x * s, this.y * s);
     }
     mag() {
       return Math.sqrt(this.mag2());
@@ -48,10 +48,10 @@ module math {
     mag2() {
       return this.x * this.x + this.y * this.y;
     }
-    dist(o: Vec2) {
+    dist(o: Point) {
       return o.sub(this).mag();
     }
-    dist2(o: Vec2) {
+    dist2(o: Point) {
       return o.sub(this).mag2();
     }
 
@@ -67,7 +67,7 @@ module math {
     S: number;
     t0: number;
     scale: number;
-    origin: Vec2;
+    origin: Point;
 
     constructor(U: number, V: number, S: number, options?: Ray.Options) {
       options = options || {};
@@ -87,10 +87,10 @@ module math {
         this.t0 = this.project_t(options.origin);
       }
     }
-    static fromTo(a: Vec2, b: Vec2) {
+    static fromTo(a: Point, b: Point) {
       return Ray.fromDirectionAndPoint(b.sub(a), a);
     }
-    static fromDirectionAndPoint(dir: Vec2, point: Vec2) {
+    static fromDirectionAndPoint(dir: Point, point: Point) {
       var D = dir;
       var P = point;
       return new Ray(D.y, -D.x, P.x * D.y + P.y * -D.x, { origin: P });
@@ -98,7 +98,7 @@ module math {
     toString() {
       return "(" + this.at(0) + "-->" + this.direction() + ")";
     }
-    value(point: Vec2) {
+    value(point: Point) {
       var P = point;
       var R = this;
       return P.x * R.U + P.y * R.V - R.S;
@@ -106,23 +106,23 @@ module math {
     at(t: number) {
       var R = this;
       t += this.t0;
-      return new Vec2(R.U * R.S - R.V * t, R.V * R.S + R.U * t);
+      return new Point(R.U * R.S - R.V * t, R.V * R.S + R.U * t);
     }
     direction() {
       var R = this;
-      return new Vec2(-R.V, R.U);
+      return new Point(-R.V, R.U);
     }
-    project(point: Vec2) {
+    project(point: Point) {
       return this.at(this.project_t(point));
     }
-    project_t(point: Vec2) {
+    project_t(point: Point) {
       var P = point;
       var R = this;
       return -R.V * P.x + R.U * P.y - R.t0;
     }
     transform(t, r) {
       var R = this;
-      return R.at(t).add(new Vec2(R.U * r, R.V * r));
+      return R.at(t).add(new Point(R.U * r, R.V * r));
     }
     intercept(ray: Ray) {
       var R = this;
@@ -134,7 +134,7 @@ module math {
 
   export module Ray {
     export interface Options {
-      origin?: Vec2;
+      origin?: Point;
     }
   }
 
@@ -144,7 +144,7 @@ module math {
 
   export class Circle extends Shape {
     static type = "circle";
-    constructor(public c: Vec2, public r: number) {
+    constructor(public c: Point, public r: number) {
       super(Circle.type);
     }
     intersect(shape: Shape) {
@@ -176,7 +176,7 @@ module math {
 
       var r1_2 = C1.r * C1.r;
       var r2_2 = C2.r * C2.r;
-      var space = result.space = Ray.fromDirectionAndPoint(Vec2.right, C1.c);
+      var space = result.space = Ray.fromDirectionAndPoint(Point.right, C1.c);
       var dc = space.project_t(C2.c);
       var m_x = (r1_2 - r2_2 + dc * dc) / (2 * dc);
       var root = r1_2 - m_x * m_x;
@@ -191,13 +191,13 @@ module math {
       return result;
     }
 
-    eval(direction: Vec2, height: number, flip: boolean) {
+    eval(direction: Point, height: number, flip: boolean) {
       var C = this;
       var sin = height / C.r;
       var cos = sin >= 1 ? 0 : Math.sqrt(1 - sin * sin);
       var center = C.c.add(direction.mul(cos * C.r));
       var d = direction.mul(height);
-      var h = new Vec2(-d.y, d.x);
+      var h = new Point(-d.y, d.x);
       if (flip) h = h.neg();
       return [center.add(h), center.sub(h)];
     }

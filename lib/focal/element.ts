@@ -12,7 +12,7 @@ module element {
         }
     }
 
-    function refract_spherical(ray: math.Ray, circle: math.Circle, height: number, intersection_point: math.Vec2, out_p: boolean, index: number) {
+    function refract_spherical(ray: math.Ray, circle: math.Circle, height: number, intersection_point: math.Point, out_p: boolean, index: number) {
         var R = ray;
         var P = intersection_point;
 
@@ -34,29 +34,30 @@ module element {
             throw new Error('refraction');
         }
 
-        var refraction_direction = new math.Vec2(
+        var refraction_direction = new math.Point(
             -circle_direction.x,
             -circle_direction.y
             );
 
-        var angle = new math.Vec2(Math.sqrt(1 - refraction_sin * refraction_sin), refraction_sin);
+        var angle = new math.Point(Math.sqrt(1 - refraction_sin * refraction_sin), refraction_sin);
 
-        refraction_direction = new math.Vec2(
+        refraction_direction = new math.Point(
             angle.x * refraction_direction.x + angle.y * refraction_direction.y,
             - angle.y * refraction_direction.x + angle.x * refraction_direction.y
             );
 
         return math.Ray.fromDirectionAndPoint(refraction_direction, P);
     }
+
     export class SphericalSurface {
-        constructor(public info) {
+        constructor(public info: SphericalSurface.Info) {
         }
 
         trace(photon: Photon) {
             var intersect = this.info.circle.intersects(photon.ray);
 
             if (!intersect) {
-                                return null;
+                return null;
             }
 
             var index = this.info.material.index(photon.wavelength);
@@ -68,14 +69,22 @@ module element {
                 this.info.height,
                 ray.at(intersect[this.info.front ? 0 : 1]),
                 !this.info.front,
-                factor
-                                );
+                factor);
 
             if (ray == null) {
                 return null;
             }
 
             return new Photon(ray, photon.wavelength, index);
+        }
+    }
+
+    export module SphericalSurface {
+        export interface Info {
+            circle: math.Circle;
+            height: number;
+            front: boolean;
+            material: material.Material;
         }
     }
 
@@ -89,28 +98,28 @@ module element {
         optic: any[];
         extents: any[];
 
-        constructor(data /* r1,r2,t,index,height? */) {
-            var radius = data.radius;
+        constructor(info: Element.Info) {
+            var radius = info.radius;
             if (typeof radius === 'number') {
-                radius = [radius, radius];
+                radius = [<number>radius, <number>radius];
             }
             var r1 = this.r1 = radius[0];
             var r2 = this.r2 = radius[1];
-            var front = this.front = data.front;
-            var back = this.back = front + data.depth;
+            var front = this.front = info.front;
+            var back = this.back = front + info.depth;
             var c1 = this.c1 = front + r1;
             var c2 = this.c2 = back - r2;
-            var height = data.height;
+            var height = info.height;
             var optic = this.optic = [
                 {
-                    circle: new math.Circle(new math.Vec2(c1, 0), Math.abs(r1)),
-                    material: data.material || Material.Air,
+                    circle: new math.Circle(new math.Point(c1, 0), Math.abs(r1)),
+                    material: info.material || Material.Air,
                     front: r1 > 0,
                     negative: r1 < 0 ? 1 : 0,
                     height: height
                 },
                 {
-                    circle: new math.Circle(new math.Vec2(c2, 0), Math.abs(r2)),
+                    circle: new math.Circle(new math.Point(c2, 0), Math.abs(r2)),
                     material: Material.Air,
                     front: r2 < 0,
                     negative: r2 < 0 ? 1 : 0,
@@ -118,15 +127,15 @@ module element {
                 }
             ];
 
-            if (data.extents) {
-                this.extents = data.extents;
+            if (info.extents) {
+                this.extents = info.extents;
             } else {
-                var forward = new math.Vec2(-1, 0);
+                var forward = new math.Point(-1, 0);
                 var backward = forward.neg();
-                if (data.height !== undefined) {
-                    var height = data.height;
+                if (info.height !== undefined) {
+                    var height = info.height;
                     if (typeof height === 'number') {
-                        height = [height, height];
+                        height = [<number>height, <number>height];
                     }
                     this.extents = [
                         optic[0].circle.eval(r1 > 0 ? forward : backward, height[0], r1 < 0),
@@ -181,8 +190,20 @@ module element {
             surfaces.push(new SphericalSurface(this.optic[1]));
         }
     }
+
+    export module Element {
+        export interface Info {
+            radius: number|number[];
+            front: number;
+            depth: number;
+            height?: number|number[];
+            material?: material.Material;
+            extents?: number[];
+        }
+    }
+
     export class OpticalStop {
-        constructor(extents: math.Vec2[]) {
+        constructor(extents: math.Point[]) {
             this.segment = math.Ray.fromTo(extents[0], extents[1]);
         }
 
@@ -208,9 +229,7 @@ module element {
                 "M{extents.0} " +
                 "L{extents.1} " +
                 "Z"
-                ,
-                this
-                );
+                , this);    
 
             try {
                 var path = paper.path(path_string);
