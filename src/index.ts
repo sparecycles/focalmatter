@@ -30,11 +30,11 @@
  * n_t 1014.0   far IR
  */
 
-import lens = require('lib/focal/lens');
-import math = require('lib/focal/math');
-import light = require('lib/focal/light');
-import element = require('lib/focal/element');
-import material = require('lib/focal/material');
+import lens = require('focal/lens');
+import math = require('focal/math');
+import light = require('focal/light');
+import element = require('focal/element');
+import material = require('focal/material');
 
 declare var Raphael;
 

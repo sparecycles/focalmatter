@@ -22,7 +22,7 @@ build/timestamps/typescripts : $(typescripts)
 	@touch $@
 
 build/timestamps/compiled : build/timestamps/typescripts
-	$(tsc) --module amd index.ts --outDir build/
+	$(tsc) --module amd src/index.ts --outDir build/
 	@touch $@
 
 .PHONY: clean
