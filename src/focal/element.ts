@@ -12,7 +12,7 @@ module element {
         }
     }
 
-    function refract_spherical(ray: math.Ray, circle: math.Circle, height: number, intersection_point: math.Point, out_p: boolean, index: number) {
+    function refract(ray: math.Ray, circle: math.Circle, height: number, intersection_point: math.Point, out_p: boolean, index: number) {
         var R = ray;
         var P = intersection_point;
 
@@ -49,6 +49,42 @@ module element {
         return math.Ray.fromDirectionAndPoint(refraction_direction, P);
     }
 
+    function refract_spherical(ray: math.Ray, circle: math.Circle, height: number, intersection_point: math.Point, out_p: boolean, index: number) {
+        var R = ray;
+        var P = intersection_point;
+
+        if (Math.abs(P.y) > height) {
+            return null;
+        }
+
+        var ray_direction = R.direction();
+        var circle_direction = P.sub(circle.c).unit();
+
+        if (out_p) {
+            circle_direction = circle_direction.neg();
+        }
+
+        var incidence_sin = ray_direction.x * circle_direction.y - ray_direction.y * circle_direction.x;
+        var refraction_sin = -incidence_sin * index;
+
+        if (Math.abs(refraction_sin) > 1) {
+            throw new Error('refraction');
+        }
+
+        var refraction_direction = new math.Point(
+            -circle_direction.x,
+            -circle_direction.y
+            );
+
+        var angle = new math.Point(Math.sqrt(1 - refraction_sin * refraction_sin), refraction_sin);
+
+        refraction_direction = new math.Point(
+            angle.x * refraction_direction.x + angle.y * refraction_direction.y,
+            - angle.y * refraction_direction.x + angle.x * refraction_direction.y
+            );
+
+        return math.Ray.fromDirectionAndPoint(refraction_direction, P);
+    }
     export class SphericalSurface {
         constructor(public info: SphericalSurface.Info) {
         }
@@ -185,6 +221,7 @@ module element {
                 debugger;
             }
         }
+        
         build(surfaces) {
             surfaces.push(new SphericalSurface(this.optic[0]));
             surfaces.push(new SphericalSurface(this.optic[1]));
