@@ -11,7 +11,7 @@ module light {
 
     export function colorFromWavelength(wavelength) {
         var computed = colors[wavelength];
-        
+
         if (computed) {
             return computed;
         }
@@ -21,12 +21,12 @@ module light {
         var green = [[530, 740, 1 / 1.3, 1]];
         var red = [[630, 800, 1 / 2, 1], [380, 420, 1, .3]];
 
-        function factor(datas) {
+        function factor(data) {
             var sum = 0;
 
-            datas.forEach((data) => {
-                var x = (wavelength - data[0]) / (data[1] - data[0]);
-                sum += Math.pow(Math.exp(-Math.PI * x * x), data[2]) * data[3];
+            data.forEach((c) => {
+                var x = (wavelength - c[0]) / (c[1] - c[0]);
+                sum += Math.pow(Math.exp(-Math.PI * x * x), c[2]) * c[3];
             });
 
             return sum;
@@ -42,7 +42,9 @@ module light {
         }
 
         return colors[wavelength] = rgb.map(function(factor) {
-            return Math.min(Math.max(Math.min(factor, 1), 0) * 256 | 0, 255);
+            return Math.min(
+                Math.max(Math.min(factor, 1), 0) * 256 | 0, 255
+            );
         });
     }
 
@@ -51,13 +53,58 @@ module light {
         return "rgb(" + colorFromWavelength(wavelength).join(',') + ")";
     }
 
+    export interface AbbeInfo {
+        nd: number;
+        vd: number;
+    }
 
-    function DeAbbe(n_d: number, v_d: number) {
-        var A = (n_d - 1) / v_d / (1 / StandardWavelengths.F - 1 / StandardWavelengths.C);
-        var B = n_d - A / StandardWavelengths.d;
+
+    function DeAbbe(info: AbbeInfo) {
+        var A = (info.nd - 1) / info.vd / (1 / StandardWavelengths.F - 1 / StandardWavelengths.C);
+        var B = info.nd - A / StandardWavelengths.d;
         return function(u: number) {
             return A / u + B;
         }
+    }
+
+    interface Index<V> {
+        [_: number]: V;
+    }
+
+    function memoize<T>(fn: (n: number) => T) {
+        var memory: Index<T> = {};
+        return (n: number) => {
+            var m = memory[n];
+            if (m !== undefined) {
+                return m;
+            }
+
+            return memory[n] = fn(n);
+        }
+    }
+
+    export interface SellmeierInfo {
+        B: [number, number, number];
+        C: [number, number, number];
+    }
+
+    export function indexForSellmeierDispersion(info: SellmeierInfo) {
+        var B1 = info.B[0],
+            B2 = info.B[1],
+            B3 = info.B[2],
+            C1 = info.C[0],
+            C2 = info.C[1],
+            C3 = info.C[2];
+
+        return memoize((w) => {
+            var w2 = w * w * (1/1000000),
+                n2 = 1 
+                + (B1 * w2) / (w2 - C1)
+                + (B2 * w2) / (w2 - C2)
+                + (B3 * w2) / (w2 - C3);
+
+            return Math.sqrt(n2);
+        });
     }
 
     export function indexForStandardDispersion(data: { nd: number; vd?: number; nC?: number; nF?: number; }) {
@@ -71,7 +118,7 @@ module light {
             vd = (data.nd - 1) / (data.nF - data.nC)
         }
 
-        return DeAbbe(nd, vd);
+        return memoize(DeAbbe({ nd: nd, vd: vd }));
     }
 }
 
