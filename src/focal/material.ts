@@ -1,4 +1,5 @@
 import light = require('./light');
+import util = require('./util');
 
 module material {
 
@@ -14,11 +15,9 @@ module material {
             }
         }
 
-        index(wavelength: number) {
-            return 1;
-        }
+        index: (wavelength: number) => number;
 
-        static Air = new Material();
+        static Air = new Material(1);
     }
 
     export module Material {
@@ -27,27 +26,25 @@ module material {
                 super(indexfn);
             }
 
-            static fromGlassCode(code: string) {
+            static fromGlassCode = util.memoize_string((code: string) => {
                 var nd = parseInt(code.substr(0, 3), 10) / 100 + 1.0;
                 var vd = parseInt(code.substr(3, 3), 10) / 10;
                 return new Glass(light.indexForStandardDispersion({
                     nd: nd,
                     vd: vd
                 }));
-            }
+            });
 
-            static Schott(name: string) {
+            static Schott = util.memoize_string((name: string) => {
                 var type = SchottGlasses[name];
-                if (type.sellmeier) {
-                    return new Glass(light.indexForSellmeierDispersion(type.sellmeier));
-                } else {
-                    return new Glass(light.indexForStandardDispersion(type.abbe))
-                }
-            }
+                return new Glass(light.indexForSellmeierDispersion(type.sellmeier));
+            });
         }
     }
 
-    var SchottGlasses = {
+    var SchottGlasses: {
+      [name: string]: { sellmeier: { B; C; }; };
+    } = {
       "F2": {
         "sellmeier": {
           "B": [

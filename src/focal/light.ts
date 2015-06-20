@@ -1,3 +1,5 @@
+import util = require('./util');
+
 module light {
     export var StandardWavelengths = {
         d: 587.6,
@@ -7,15 +9,7 @@ module light {
         t: 1014.0,
     };
 
-    var colors: { [wavelength: number]: number[] } = {};
-
-    export function colorFromWavelength(wavelength) {
-        var computed = colors[wavelength];
-
-        if (computed) {
-            return computed;
-        }
-
+    export var colorFromWavelength = util.memoize_number((wavelength) => {
         // these numbers were determined experimentally to look nice.
         var blue = [[425, 540, 1, 1]];
         var green = [[530, 740, 1 / 1.3, 1]];
@@ -41,12 +35,12 @@ module light {
             rgb[2] /= max;
         }
 
-        return colors[wavelength] = rgb.map(function(factor) {
+        return rgb.map(function(factor) {
             return Math.min(
                 Math.max(Math.min(factor, 1), 0) * 256 | 0, 255
             );
         });
-    }
+    });
 
 
     export function rgbFromWavelength(wavelength) {
@@ -67,21 +61,6 @@ module light {
         }
     }
 
-    interface Index<V> {
-        [_: number]: V;
-    }
-
-    function memoize<T>(fn: (n: number) => T) {
-        var memory: Index<T> = {};
-        return (n: number) => {
-            var m = memory[n];
-            if (m !== undefined) {
-                return m;
-            }
-
-            return memory[n] = fn(n);
-        }
-    }
 
     export interface SellmeierInfo {
         B: [number, number, number];
@@ -96,14 +75,16 @@ module light {
             C2 = info.C[1],
             C3 = info.C[2];
 
-        return memoize((w) => {
+        return util.memoize_number((w) => {
             var w2 = w * w * (1/1000000),
                 n2 = 1 
                 + (B1 * w2) / (w2 - C1)
                 + (B2 * w2) / (w2 - C2)
                 + (B3 * w2) / (w2 - C3);
 
-            return Math.sqrt(n2);
+            var index = Math.sqrt(n2);
+
+            return index;
         });
     }
 
@@ -118,7 +99,7 @@ module light {
             vd = (data.nd - 1) / (data.nF - data.nC)
         }
 
-        return memoize(DeAbbe({ nd: nd, vd: vd }));
+        return util.memoize_number(DeAbbe({ nd: nd, vd: vd }));
     }
 }
 
