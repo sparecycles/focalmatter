@@ -15,7 +15,6 @@ module element {
 
     export class Group implements Component {
         constructor(public elements: Element[]) {
-
         }
 
         static balsam(components: Component[]): Component[] {
@@ -26,7 +25,7 @@ module element {
             function addToGroup(component: Component) {
                 if (component instanceof Element && (group.length == 0 || lastElement &&
                     lastElement.back === (<Element>component).front
-                    && lastElement.r2 === (<Element>component).r1)) {
+                    && lastElement.r2 === -(<Element>component).r1)) {
                     group.push(lastElement = <Element>component);
                 } else {
                     lastElement = null;
