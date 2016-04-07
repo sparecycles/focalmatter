@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "r.js": "^1.0.3",
+    "requirejs": "^2.2.0"
+  }
+}
