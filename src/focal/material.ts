@@ -1,7 +1,7 @@
-import light = require('./light');
-import util = require('./util');
+import light from './light';
+import {memoize_string} from './util';
 
-module material {
+namespace material {
 
     export class Material {
         constructor();
@@ -20,13 +20,13 @@ module material {
         static Air = new Material(1);
     }
 
-    export module Material {
+    export namespace Material {
         export class Glass extends Material {
             constructor(indexfn) {
                 super(indexfn);
             }
 
-            static fromGlassCode = util.memoize_string((code: string) => {
+            static fromGlassCode = memoize_string((code: string) => {
                 var nd = parseInt(code.substr(0, 3), 10) / 100 + 1.0;
                 var vd = parseInt(code.substr(3, 3), 10) / 10;
                 return new Glass(light.indexForStandardDispersion({
@@ -35,7 +35,7 @@ module material {
                 }));
             });
 
-            static Schott = util.memoize_string((name: string) => {
+            static Schott = memoize_string((name: string) => {
                 var type = SchottGlasses[name];
                 return new Glass(light.indexForSellmeierDispersion(type.sellmeier));
             });
@@ -2288,4 +2288,4 @@ module material {
     };
 }
 
-export = material;
+export default material;

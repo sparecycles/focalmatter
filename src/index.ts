@@ -30,16 +30,16 @@
  * n_t 1014.0   far IR
  */
 
-import math = require('focal/math');
-import light = require('focal/light');
-import element = require('focal/element');
-import material = require('focal/material');
-import optic = require('focal/optic');
+import math from './focal/math';
+import light from './focal/light';
+import element from './focal/element';
+import material from  './focal/material';
+import {Optic,Photon} from './focal/optic';
 
 declare var Raphael;
 
 var elements: element.Component[] = [];
-var opticalSystem: optic.Optic;
+var opticalSystem: Optic;
 
 function makePaper(id) {
   var paper = new Raphael(id);
@@ -55,8 +55,8 @@ function render(paper, direction, wavelength, step, offset) {
     offset *= step;
     for (var i = 20 + offset; i >= -20; i -= step) {
         var ray = math.Ray.fromDirectionAndPoint(direction.unit(), new math.Point(-10, -i));
-        var result: optic.Photon[] = [];
-        var complete = opticalSystem.trace(new optic.Photon(ray, wavelength), (photon) => {
+        var result: Photon[] = [];
+        var complete = opticalSystem.trace(new Photon(ray, wavelength), (photon) => {
           result.push(photon);
         });
 
@@ -95,7 +95,7 @@ function postRedraw() {
 
     requestAnimationFrame(function() {
       var tasks = drawTasks;
-      drawTasks = null;      
+      drawTasks = null;
       doRedraw(tasks);
     });
   }
@@ -115,7 +115,7 @@ function redrawOptic(components: element.Component[]) {
 }
 
 function computeFocalPlane(elements) {
-  
+
 }
 
 function redrawLight(angle, dy) {
@@ -128,7 +128,7 @@ function doRedraw(tasks) {
     scene.groups = element.Group.balsam(scene.components);
     var surfaces = [];
     scene.groups.forEach((group) => group.build(surfaces));
-    opticalSystem = new optic.Optic(surfaces);
+    opticalSystem = new Optic(surfaces);
     drawOptic(scene.groups);
 
     tasks.light = true;
@@ -196,7 +196,7 @@ function parse(text: string) {
         break;
       case 'stop':
         var height = Number(words[2]);
-        components.push(new element.Stop([
+        components.push(new element.Aperture([
           new math.Point(x, -height),
           new math.Point(x, +height)
         ]));

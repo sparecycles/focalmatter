@@ -4,7 +4,7 @@ function evil(fmt, params) {
   ).apply(this, Array.prototype.slice.call(arguments, 2));
 }
 
-module evil {
+namespace evil {
   export function format(fmt, params) {
     return fmt.replace(/{{([^}]*)}}/g, function(_, key) {
       return params[key] || '';
@@ -12,4 +12,4 @@ module evil {
   }
 }
 
-export = evil;
+export default evil;

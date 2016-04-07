@@ -1,15 +1,15 @@
 
-import math = require('./math');
-import material = require('./material');
-import optic = require('./optic');
+import math from './math';
+import material from './material';
+import {Surface, SphericalSurface, Stop} from './optic';
 
 declare var Raphael;
 
 var Material = material.Material;
 
-module element {
+namespace element {
     export interface Component {
-        build(surfaces: optic.Surface[]);
+        build(surfaces: Surface[]);
         draw(paper);
     }
 
@@ -53,13 +53,13 @@ module element {
             return groups;
         }
 
-        build(surfaces: optic.Surface[]) {            
+        build(surfaces: Surface[]) {
             for (var i = 0; i < this.elements.length; i++) {
                 var element = this.elements[i];
-                surfaces.push(new optic.SphericalSurface(element.frontSurface()));
+                surfaces.push(new SphericalSurface(element.frontSurface()));
             }
 
-            surfaces.push(new optic.SphericalSurface(element.rearSurface()));
+            surfaces.push(new SphericalSurface(element.rearSurface()));
         }
 
         draw(paper) {
@@ -149,9 +149,9 @@ module element {
             };
         }
 
-        build(surfaces: optic.Surface[]) {
-            surfaces.push(new optic.SphericalSurface(this.frontSurface()));
-            surfaces.push(new optic.SphericalSurface(this.rearSurface()));
+        build(surfaces: Surface[]) {
+            surfaces.push(new SphericalSurface(this.frontSurface()));
+            surfaces.push(new SphericalSurface(this.rearSurface()));
         }
 
         draw(paper) {
@@ -181,7 +181,7 @@ module element {
         }
     }
 
-    export class Stop implements Component {
+    export class Aperture implements Component {
         constructor(public extents: math.Point[]) {
         }
 
@@ -190,7 +190,7 @@ module element {
                 "M{extents.0} " +
                 "L{extents.1} " +
                 "Z"
-                , this);    
+                , this);
 
             try {
                 var path = paper.path(path_string);
@@ -202,13 +202,13 @@ module element {
             }
         }
 
-        build(surfaces: optic.Surface[]) {
-            surfaces.push(new optic.Stop(this.extents));
+        build(surfaces: Surface[]) {
+            surfaces.push(new Stop(this.extents));
         }
     }
 
 
-    export module Element {
+    export namespace Element {
         export interface Info {
             radius: number|number[];
             front: number;
@@ -229,4 +229,4 @@ module element {
     }
 }
 
-export = element;
+export default element;

@@ -7,8 +7,8 @@ class Context {
         parentContext.register(function() {
             this.release();
         }, this);
-        
-        currentContext = this;        
+
+        currentContext = this;
     }
 
     refcount: number = 1;
@@ -49,4 +49,4 @@ class Context {
     }
 }
 
-export = Context;
+export default Context;

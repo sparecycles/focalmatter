@@ -1,5 +1,4 @@
-
-module math {
+namespace math {
   export function sgn(x) {
     return x > 0 ? +1 : x < 0 ? -1 : 0;
   }
@@ -132,7 +131,7 @@ module math {
     }
   }
 
-  export module Ray {
+  export namespace Ray {
     export interface Options {
       origin?: Point;
     }
@@ -216,4 +215,4 @@ module math {
   }
 }
 
-export = math;
+export default math;

@@ -1,6 +1,6 @@
-import util = require('./util');
+import {memoize_number} from './util';
 
-module light {
+namespace light {
     export var StandardWavelengths = {
         d: 587.6,
         F: 486.1,
@@ -9,7 +9,7 @@ module light {
         t: 1014.0,
     };
 
-    export var colorFromWavelength = util.memoize_number((wavelength) => {
+    export var colorFromWavelength = memoize_number((wavelength) => {
         // these numbers were determined experimentally to look nice.
         var blue = [[425, 540, 1, 1]];
         var green = [[530, 740, 1 / 1.3, 1]];
@@ -61,7 +61,6 @@ module light {
         }
     }
 
-
     export interface SellmeierInfo {
         B: [number, number, number];
         C: [number, number, number];
@@ -75,9 +74,9 @@ module light {
             C2 = info.C[1],
             C3 = info.C[2];
 
-        return util.memoize_number((w) => {
+        return memoize_number((w) => {
             var w2 = w * w * (1/1000000),
-                n2 = 1 
+                n2 = 1
                 + (B1 * w2) / (w2 - C1)
                 + (B2 * w2) / (w2 - C2)
                 + (B3 * w2) / (w2 - C3);
@@ -99,9 +98,8 @@ module light {
             vd = (data.nd - 1) / (data.nF - data.nC)
         }
 
-        return util.memoize_number(DeAbbe({ nd: nd, vd: vd }));
+        return memoize_number(DeAbbe({ nd: nd, vd: vd }));
     }
 }
 
-
-export = light;
+export default light;

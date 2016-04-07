@@ -2,7 +2,7 @@
 
 import fs = require('fs');
 
-module ZEMAX {
+namespace ZEMAX {
     interface Glass {
         GC?: string; // Remarks
         ED?: number[]; // Extra Data (?)
